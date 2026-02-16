@@ -41,8 +41,8 @@ export default function App() {
 
             <SolarOrb isNight={isNight} setIsNight={setIsNight} />
 
-            <main className="relative z-20 h-full mx-auto w-full max-w-7xl px-10">
-                <div className="h-full grid grid-rows-[auto_1fr] gap-10 items-center">
+            <main className="relative z-20 h-full mx-auto w-full max-w-7xl py-20">
+                <div className="h-full grid grid-rows-[auto_1fr] gap-10 items-center py-10">
                     <section className="max-w-3xl pr-[260px]">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass">
                             <Sparkles size={14} className="text-yellow-500" />
