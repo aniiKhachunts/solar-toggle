@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Layout, Zap } from "lucide-react";
 import SolarOrb from "./components/SolarOrb.tsx";
-import {SolarCard} from "./components/SolarCard.tsx";
-import {useSolarTracker} from "./hooks/useSolarTracker.ts";
+import { useSolarTracker } from "./hooks/useSolarTracker.ts";
 
 export default function App() {
     const [isNight, setIsNight] = useState(false);
@@ -27,6 +25,7 @@ export default function App() {
 
     return (
         <div className="noise solar-scene h-screen overflow-hidden">
+            {/* BACKGROUND */}
             <div className="solar-layers">
                 <div className="sky" />
                 <div className="aurora" />
@@ -39,51 +38,125 @@ export default function App() {
             <div className="horizon" />
             <div className="horizon-label">Horizon</div>
 
+            {/* SUN CONTROL */}
             <SolarOrb isNight={isNight} setIsNight={setIsNight} />
 
             <main className="relative z-20 h-full mx-auto w-full max-w-7xl py-20">
                 <div className="h-full grid grid-rows-[auto_1fr] gap-10 items-center py-10">
-                    <section className="max-w-3xl pr-[260px]">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass">
-                            <Sparkles size={14} className="text-yellow-500" />
-                            <span
-                                className="text-[11px] font-semibold tracking-[0.28em] uppercase"
-                                style={{ color: "var(--muted)" }}
-                            >
-                Solaris • Material Playground
-              </span>
-                        </div>
 
+                    {/* TEXT */}
+                    <section className="max-w-3xl pr-[260px]">
                         <h1 className="mt-7 text-[clamp(36px,5.2vw,68px)] leading-[0.94] font-black tracking-tight text-title">
-                            Light-driven UI
+                            Solaris
                         </h1>
 
-                        <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-body">
-                            Drag the sun above the horizon for day. Pull it below to enter night. Tap the orb to toggle instantly.
-                        </p>
+                        <h2 className="mt-5 max-w-xl text-[15px] leading-relaxed opacity-70">
+                            Drag the sun. Tap to switch.
+                        </h2>
                     </section>
 
-                    <section className="min-h-0">
-                        <div className="grid grid-cols-3 gap-7 items-stretch">
-                            <SolarCard
-                                title="Reactive Layout"
-                                icon={Layout}
-                                meta="POSITION-AWARE"
-                                description="Cards understand where the light source is and respond with convincing material depth."
-                            />
-                            <SolarCard
-                                title="Weighted Motion"
-                                icon={Zap}
-                                meta="SPRING SYSTEM"
-                                description="Magnetic hover and inertial tracking create a tactile premium interaction."
-                            />
-                            <SolarCard
-                                title="Atmosphere"
-                                icon={Sparkles}
-                                meta="DUSK-DRIVEN"
-                                description="Sky, glow, aurora and stars blend naturally based on sun position."
-                            />
+                    {/* LIGHT SYSTEM */}
+                    <section className="relative h-[320px] mt-16 flex items-center justify-center pointer-events-none">
+                        {/* DAY LIGHT */}
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: `
+                                    radial-gradient(
+                                        circle at var(--sun-x) var(--sun-y),
+                                        rgba(251,191,36,0.18),
+                                        transparent 55%
+                                    )
+                                `,
+                                filter: "blur(60px)",
+                                opacity: "calc(1 - var(--dusk))"
+                            }}
+                        />
+
+                        {/* NIGHT LIGHT */}
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: `
+                                    radial-gradient(
+                                        circle at var(--sun-x) var(--sun-y),
+                                        rgba(96,165,250,0.18),
+                                        transparent 70%
+                                    )
+                                `,
+                                filter: "blur(80px)",
+                                opacity: "var(--dusk)"
+                            }}
+                        />
+
+                        {/* GLASS PANEL */}
+                        <div className="translate-y-6">
+                            <div
+                                className="relative w-[90%] max-w-[560px] h-[220px] md:h-[240px] rounded-[40px] backdrop-blur-3xl transition-all duration-500"
+                                style={{
+                                    background:
+                                        "linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04))",
+                                    border: "1px solid rgba(255,255,255,0.08)",
+
+                                    transform: `
+                                        rotateX(calc((var(--sun-y) - 50vh) * -0.015deg))
+                                        rotateY(calc((var(--sun-x) - 50vw) * 0.015deg))
+                                    `,
+
+                                    boxShadow: `
+                                        0 40px 120px rgba(0,0,0,0.35),
+                                        inset 0 1px 0 rgba(255,255,255,0.25)
+                                    `,
+
+                                    animation: "float 6s ease-in-out infinite"
+                                }}
+                            >
+                                {/* REFLECTION */}
+                                <div
+                                    className="absolute inset-0 pointer-events-none"
+                                    style={{
+                                        background: `
+                                            radial-gradient(
+                                                circle at var(--sun-x) var(--sun-y),
+                                                rgba(255,255,255,0.35),
+                                                transparent 35%
+                                            )
+                                        `
+                                    }}
+                                />
+
+                                {/* DAY GLOW */}
+                                <div
+                                    className="absolute inset-0 pointer-events-none"
+                                    style={{
+                                        background: `
+                                            radial-gradient(
+                                                circle at var(--sun-x) var(--sun-y),
+                                                rgba(251,191,36,0.35),
+                                                transparent 65%
+                                            )
+                                        `,
+                                        opacity: "calc(1 - var(--dusk))"
+                                    }}
+                                />
+
+                                {/* NIGHT GLOW */}
+                                <div
+                                    className="absolute inset-0 pointer-events-none"
+                                    style={{
+                                        background: `
+                                            radial-gradient(
+                                                circle at var(--sun-x) var(--sun-y),
+                                                rgba(96,165,250,0.25),
+                                                transparent 65%
+                                            )
+                                        `,
+                                        opacity: "var(--dusk)"
+                                    }}
+                                />
+                            </div>
                         </div>
+
                     </section>
                 </div>
             </main>

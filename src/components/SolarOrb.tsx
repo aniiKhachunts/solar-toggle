@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Moon, SunMedium, ArrowDown, ArrowUp } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Moon, SunMedium } from "lucide-react";
 
 type Props = {
     isNight: boolean;
@@ -9,27 +9,45 @@ type Props = {
 export default function SolarOrb({ isNight, setIsNight }: Props) {
     const ref = useRef<HTMLDivElement | null>(null);
     const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
-    const movedRef = useRef(false);
     const draggingRef = useRef(false);
-    const [hintVisible, setHintVisible] = useState(true);
 
-    const horizonY = useMemo(() => window.innerHeight * 0.62, []);
+    const [hintVisible, setHintVisible] = useState(true);
+    const [horizonY, setHorizonY] = useState(0);
+
+    useEffect(() => {
+        const update = () => setHorizonY(window.innerHeight * 0.62);
+        update();
+        window.addEventListener("resize", update);
+        return () => window.removeEventListener("resize", update);
+    }, []);
+
+    const clamp = (v: number, min: number, max: number) =>
+        Math.max(min, Math.min(max, v));
 
     const setVars = (x: number, y: number) => {
         const root = document.documentElement;
-        root.style.setProperty("--sun-x", `${x}px`);
-        root.style.setProperty("--sun-y", `${y}px`);
 
-        const p = Math.min(1, Math.max(0, y / window.innerHeight));
+        const clampedX = clamp(x, 40, window.innerWidth - 40);
+        const clampedY = clamp(y, 40, window.innerHeight - 40);
+
+        // 🌗 instant visual switch during drag
+        const isBelow = clampedY > horizonY;
+        root.classList.toggle("mode-night", isBelow);
+        root.classList.toggle("mode-day", !isBelow);
+
+        // 🌞 position
+        root.style.setProperty("--sun-x", `${clampedX}px`);
+        root.style.setProperty("--sun-y", `${clampedY}px`);
+
+        // 🌅 progress
+        const p = Math.min(1, Math.max(0, clampedY / window.innerHeight));
         root.style.setProperty("--sun-progress", String(p));
 
         const dusk = Math.min(1, Math.max(0, (p - 0.33) / 0.48));
         root.style.setProperty("--dusk", String(dusk));
-
-        if (y > horizonY + 10 && !isNight) setIsNight(true);
-        if (y < horizonY - 18 && isNight) setIsNight(false);
     };
 
+    // 🔁 sync React state AFTER drag / tap
     useEffect(() => {
         const root = document.documentElement;
         root.classList.toggle("mode-night", isNight);
@@ -43,8 +61,11 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
         const threshold = 7;
 
         const onPointerDown = (e: PointerEvent) => {
-            startRef.current = { x: e.clientX, y: e.clientY, t: performance.now() };
-            movedRef.current = false;
+            startRef.current = {
+                x: e.clientX,
+                y: e.clientY,
+                t: performance.now(),
+            };
             draggingRef.current = false;
             setHintVisible(false);
             (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -59,7 +80,6 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
 
             if (!draggingRef.current && dist > threshold) {
                 draggingRef.current = true;
-                movedRef.current = true;
             }
 
             if (draggingRef.current) {
@@ -68,6 +88,10 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
         };
 
         const onPointerUp = (e: PointerEvent) => {
+            if ((e.currentTarget as HTMLElement).hasPointerCapture(e.pointerId)) {
+                (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+            }
+
             if (!startRef.current) return;
 
             const dx = e.clientX - startRef.current.x;
@@ -80,6 +104,8 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
             if (isTap) {
                 setIsNight(!isNight);
             } else {
+                const shouldBeNight = e.clientY > horizonY;
+                setIsNight(shouldBeNight);
                 setVars(e.clientX, e.clientY);
             }
 
@@ -91,14 +117,21 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
         el.addEventListener("pointermove", onPointerMove);
         el.addEventListener("pointerup", onPointerUp);
         el.addEventListener("pointercancel", onPointerUp);
+        el.addEventListener("pointerleave", onPointerUp);
 
         return () => {
             el.removeEventListener("pointerdown", onPointerDown);
             el.removeEventListener("pointermove", onPointerMove);
             el.removeEventListener("pointerup", onPointerUp);
             el.removeEventListener("pointercancel", onPointerUp);
+            el.removeEventListener("pointerleave", onPointerUp);
         };
-    }, [isNight, setIsNight, horizonY]);
+    }, [isNight, horizonY]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setHintVisible(false), 2500);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <div
@@ -109,50 +142,31 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
                 transform: "translate(-50%, -50%)",
             }}
         >
-            <div ref={ref} className="relative cursor-grab active:cursor-grabbing">
+            <div ref={ref} className="relative cursor-pointer">
                 <div className="orb-pulse" />
 
                 {hintVisible && (
-                    <div className="orb-tooltip">
-            <span className="inline-flex items-center gap-2">
-              <span className="inline-flex items-center gap-1">
-                <ArrowUp size={14} /> day
-              </span>
-              <span className="opacity-60">/</span>
-              <span className="inline-flex items-center gap-1">
-                <ArrowDown size={14} /> night
-              </span>
-              <span className="opacity-60">•</span>
-              <span>tap to toggle</span>
-            </span>
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[11px] opacity-60 whitespace-nowrap">
+                        Drag or tap
                     </div>
                 )}
 
                 <div
-                    className="glass rounded-[1.4rem] px-4 py-3 flex items-center gap-3"
-                    style={{ color: "var(--fg)" }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsNight(!isNight);
+                    }}
+                    className="w-14 h-14 rounded-full grid place-items-center transition active:scale-90 hover:scale-105"
+                    style={{
+                        background: isNight
+                            ? "rgba(96,165,250,0.15)"
+                            : "rgba(251,191,36,0.95)",
+                        boxShadow: isNight
+                            ? "0 0 30px rgba(96,165,250,0.25)"
+                            : "0 0 80px rgba(251,191,36,0.55)",
+                    }}
                 >
-                    <div
-                        className="w-12 h-12 rounded-[1.25rem] grid place-items-center ring-1"
-                        style={{
-                            borderColor: "var(--glass-border)",
-                            background: isNight ? "rgba(96,165,250,0.12)" : "rgba(251,191,36,0.92)",
-                            boxShadow: isNight
-                                ? "0 0 28px rgba(96,165,250,0.22)"
-                                : "0 0 90px rgba(251,191,36,0.50), 0 0 160px rgba(251,191,36,0.18)",
-                        }}
-                    >
-                        {isNight ? <Moon size={18} /> : <SunMedium size={18} />}
-                    </div>
-
-                    <div className="leading-tight">
-                        <div className="text-[11px] font-semibold tracking-[0.24em] uppercase" style={{ color: "var(--muted)" }}>
-                            Sun controller
-                        </div>
-                        <div className="text-xs font-semibold" style={{ color: "var(--fg)" }}>
-                            Drag across horizon • Tap toggles
-                        </div>
-                    </div>
+                    {isNight ? <Moon size={20} /> : <SunMedium size={20} />}
                 </div>
             </div>
         </div>
