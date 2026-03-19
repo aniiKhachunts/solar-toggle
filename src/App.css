@@ -144,3 +144,43 @@
         opacity: 0;
     }
 }
+
+.noise-overlay {
+    background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+}
+
+.sun-trail {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+
+    background: radial-gradient(
+            circle,
+            rgba(255, 200, 80, 0.35),
+            rgba(255, 200, 80, 0.15),
+            transparent 70%
+    );
+
+    filter: blur(25px);
+    opacity: 0.6;
+    transition: all 0.25s ease-out;
+}
+
+.mode-night .sun-trail {
+    background: radial-gradient(
+            circle,
+            rgba(96,165,250,0.35),
+            rgba(96,165,250,0.12),
+            transparent 70%
+    );
+}
+
+@keyframes floatParticle {
+    0% { transform: translateY(0px); opacity: 0.2; }
+    50% { opacity: 0.6; }
+    100% { transform: translateY(-80px); opacity: 0; }
+}

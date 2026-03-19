@@ -108,13 +108,24 @@ body {
 
 .aurora {
     position: absolute;
-    inset: -25%;
-    opacity: calc(var(--dusk) * 0.95);
-    background:
-            radial-gradient(850px circle at 18% 35%, rgba(56,189,248,0.16), transparent 60%),
-            radial-gradient(980px circle at 82% 50%, rgba(167,139,250,0.13), transparent 58%),
-            radial-gradient(800px circle at 55% 82%, rgba(34,211,238,0.10), transparent 60%);
-    filter: blur(12px);
+    inset: 0;
+    pointer-events: none;
+
+    background: radial-gradient(
+            circle at var(--sun-x) var(--sun-y),
+            rgba(120, 255, 200, 0.18),
+            transparent 40%
+    ),
+    radial-gradient(
+            circle at calc(100% - var(--sun-x)) calc(100% - var(--sun-y)),
+            rgba(180, 120, 255, 0.12),
+            transparent 50%
+    );
+
+    filter: blur(80px);
+    opacity: calc(var(--dusk) * 1.2);
+
+    transition: opacity 0.4s ease;
 }
 
 .stars {
