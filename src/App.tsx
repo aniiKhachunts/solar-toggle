@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import SolarOrb from "./components/SolarOrb.tsx";
 import { useSolarTracker } from "./hooks/useSolarTracker.ts";
 
@@ -23,6 +23,19 @@ export default function App() {
         }
     }, []);
 
+    const particlesRef = useRef<any[]>([]);
+
+    useEffect(() => {
+        particlesRef.current = Array.from({ length: 36 }).map(() => ({
+            size: Math.random() * 2 + 1,
+            left: Math.random() * 100,
+            top: Math.random() * 100,
+            opacity: Math.random() * 0.5 + 0.2,
+            duration: 8 + Math.random() * 10,
+            delay: Math.random() * 8,
+        }));
+    }, []);
+
     return (
         <div className="noise solar-scene h-screen overflow-hidden">
             {/* BACKGROUND */}
@@ -38,13 +51,11 @@ export default function App() {
             <div className="horizon" />
             <div className="horizon-label">Horizon</div>
 
-            {/* SUN CONTROL */}
             <SolarOrb isNight={isNight} setIsNight={setIsNight} />
 
             <main className="relative z-20 h-full mx-auto w-full max-w-7xl py-20">
                 <div className="h-full grid grid-rows-[auto_1fr] gap-10 items-center py-10">
 
-                    {/* TEXT */}
                     <section className="max-w-3xl pr-[260px]">
                         <h1 className="mt-7 text-[clamp(36px,5.2vw,68px)] leading-[0.94] font-black tracking-tight text-title">
                             Solaris
@@ -55,9 +66,25 @@ export default function App() {
                         </h2>
                     </section>
 
-                    {/* LIGHT SYSTEM */}
-                    <section className="relative h-[320px] mt-16 flex items-center justify-center pointer-events-none">
-                        {/* DAY LIGHT */}
+                    <section className="relative h-[320px] mt-16 flex items-center justify-center overflow-hidden">
+
+                        <div className="absolute inset-0 pointer-events-none noise-overlay" />
+
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: `
+                                    radial-gradient(
+                                        circle at var(--sun-x) var(--sun-y),
+                                        rgba(255,255,255,0.15),
+                                        transparent 40%
+                                    )
+                                `,
+                                filter: "blur(40px)",
+                                opacity: "calc(1 - var(--dusk))"
+                            }}
+                        />
+
                         <div
                             className="absolute inset-0 pointer-events-none"
                             style={{
@@ -73,7 +100,6 @@ export default function App() {
                             }}
                         />
 
-                        {/* NIGHT LIGHT */}
                         <div
                             className="absolute inset-0 pointer-events-none"
                             style={{
@@ -89,29 +115,62 @@ export default function App() {
                             }}
                         />
 
-                        {/* GLASS PANEL */}
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                            {particlesRef.current.map((p, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute rounded-full bg-white"
+                                    style={{
+                                        width: `${p.size}px`,
+                                        height: `${p.size}px`,
+                                        left: `${p.left}%`,
+                                        top: `${p.top}%`,
+                                        opacity: p.opacity,
+                                        filter: "blur(0.5px)",
+                                        animation: `floatParticle ${p.duration}s linear infinite`,
+                                        animationDelay: `${p.delay}s`
+                                    }}
+                                />
+                            ))}
+                        </div>
+
                         <div className="translate-y-6">
                             <div
-                                className="relative w-[90%] max-w-[560px] h-[220px] md:h-[240px] rounded-[40px] backdrop-blur-3xl transition-all duration-500"
+                                className="relative w-[90%] max-w-[560px] h-[220px] rounded-[40px] backdrop-blur-3xl transition-all duration-500"
                                 style={{
-                                    background:
-                                        "linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04))",
-                                    border: "1px solid rgba(255,255,255,0.08)",
-
+                                    background: `
+                                        radial-gradient(
+                                            circle at 50% 30%,
+                                            rgba(255,255,255,0.18),
+                                            rgba(255,255,255,0.02) 70%
+                                        )
+                                    `,
+                                    border: "1px solid rgba(255,255,255,0.06)",
                                     transform: `
                                         rotateX(calc((var(--sun-y) - 50vh) * -0.015deg))
                                         rotateY(calc((var(--sun-x) - 50vw) * 0.015deg))
                                     `,
-
                                     boxShadow: `
-                                        0 40px 120px rgba(0,0,0,0.35),
-                                        inset 0 1px 0 rgba(255,255,255,0.25)
+                                        0 60px 140px rgba(0,0,0,0.35),
+                                        inset 0 1px 0 rgba(255,255,255,0.2)
                                     `,
-
                                     animation: "float 6s ease-in-out infinite"
                                 }}
                             >
-                                {/* REFLECTION */}
+                                <div
+                                    className="absolute inset-0 pointer-events-none"
+                                    style={{
+                                        background: `
+                                            radial-gradient(
+                                                circle at center,
+                                                transparent 55%,
+                                                rgba(0,0,0,0.25)
+                                            )
+                                        `,
+                                        mixBlendMode: "soft-light"
+                                    }}
+                                />
+
                                 <div
                                     className="absolute inset-0 pointer-events-none"
                                     style={{
@@ -125,7 +184,6 @@ export default function App() {
                                     }}
                                 />
 
-                                {/* DAY GLOW */}
                                 <div
                                     className="absolute inset-0 pointer-events-none"
                                     style={{
@@ -140,7 +198,6 @@ export default function App() {
                                     }}
                                 />
 
-                                {/* NIGHT GLOW */}
                                 <div
                                     className="absolute inset-0 pointer-events-none"
                                     style={{

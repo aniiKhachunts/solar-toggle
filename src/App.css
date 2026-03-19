@@ -59,3 +59,88 @@
 .orb-pulse {
     will-change: transform, opacity;
 }
+
+/* floating glass */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(6px);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* particles */
+@keyframes floatParticle {
+    0% {
+        transform: translateY(0px);
+        opacity: 0.2;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-80px);
+        opacity: 0;
+    }
+}
+
+/* subtle breathing */
+.sky {
+    animation: skyBreath 12s ease-in-out infinite;
+}
+
+@keyframes skyBreath {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.08);
+    }
+}
+
+/* better stars */
+.stars {
+    opacity: calc(var(--dusk) * 1.2);
+    transition: opacity 0.3s ease;
+}
+
+/* sun pulse */
+.orb-pulse {
+    position: absolute;
+    inset: -20px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(0.9);
+        opacity: 0.4;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+}
+
+.noise-overlay {
+    background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+}
+
+@keyframes floatParticle {
+    0% {
+        transform: translateY(0px);
+        opacity: 0.2;
+    }
+    50% {
+        opacity: 0.6;
+    }
+    100% {
+        transform: translateY(-80px);
+        opacity: 0;
+    }
+}

@@ -30,16 +30,13 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
         const clampedX = clamp(x, 40, window.innerWidth - 40);
         const clampedY = clamp(y, 40, window.innerHeight - 40);
 
-        // 🌗 instant visual switch during drag
         const isBelow = clampedY > horizonY;
         root.classList.toggle("mode-night", isBelow);
         root.classList.toggle("mode-day", !isBelow);
 
-        // 🌞 position
         root.style.setProperty("--sun-x", `${clampedX}px`);
         root.style.setProperty("--sun-y", `${clampedY}px`);
 
-        // 🌅 progress
         const p = Math.min(1, Math.max(0, clampedY / window.innerHeight));
         root.style.setProperty("--sun-progress", String(p));
 
@@ -47,7 +44,6 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
         root.style.setProperty("--dusk", String(dusk));
     };
 
-    // 🔁 sync React state AFTER drag / tap
     useEffect(() => {
         const root = document.documentElement;
         root.classList.toggle("mode-night", isNight);
