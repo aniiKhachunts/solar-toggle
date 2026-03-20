@@ -4,11 +4,12 @@ import {useSolarTracker} from "./hooks/useSolarTracker.ts";
 
 export default function App() {
     const [isNight, setIsNight] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     useSolarTracker();
 
     const [particles] = useState(() =>
-        Array.from({length: 36}).map(() => ({
+        Array.from({ length: 18 }).map(() => ({
             size: Math.random() * 2 + 1,
             left: Math.random() * 100,
             top: Math.random() * 100,
@@ -47,7 +48,11 @@ export default function App() {
             <div className="horizon"/>
             <div className="horizon-label">Horizon</div>
 
-            <SolarOrb isNight={isNight} setIsNight={setIsNight}/>
+            <SolarOrb
+                isNight={isNight}
+                setIsNight={setIsNight}
+                setIsDragging={setIsDragging}
+            />
 
             <main className="relative z-20 h-full mx-auto w-full max-w-7xl py-20">
                 <div className="h-full grid grid-rows-[auto_1fr] gap-10 items-center py-10">
@@ -58,7 +63,7 @@ export default function App() {
                         </h1>
 
                         <h2 className="mt-5 max-w-xl text-[15px] leading-relaxed opacity-70">
-                            Drag the sun. Tap to switch.
+                            Drag the sun. Or tap to switch.
                         </h2>
                     </section>
 
@@ -76,7 +81,7 @@ export default function App() {
                                         transparent 40%
                                     )
                                 `,
-                                filter: "blur(40px)",
+                                filter: "blur(20px)",
                                 opacity: "calc(1 - var(--dusk))"
                             }}
                         />
@@ -91,7 +96,7 @@ export default function App() {
                                         transparent 55%
                                     )
                                 `,
-                                filter: "blur(60px)",
+                                filter: "blur(25px)",
                                 opacity: "calc(1 - var(--dusk))"
                             }}
                         />
@@ -106,7 +111,7 @@ export default function App() {
                                         transparent 70%
                                     )
                                 `,
-                                filter: "blur(80px)",
+                                filter: "blur(30px)",
                                 opacity: "var(--dusk)"
                             }}
                         />
@@ -122,7 +127,7 @@ export default function App() {
                         </div>
 
                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                            {particles.map((p, i) => (
+                            {!isDragging && particles.map((p, i) => (
                                 <div
                                     key={i}
                                     className="absolute rounded-full bg-white"
@@ -136,11 +141,13 @@ export default function App() {
                                         `,
                                         filter: "blur(0.6px)",
                                         transform: `
-                                            translate(
+                                            translate3d(
                                                 calc((50vw - var(--sun-x)) * ${0.01 + p.size * 0.01}),
-                                                calc((50vh - var(--sun-y)) * ${0.01 + p.size * 0.01})
+                                                calc((50vh - var(--sun-y)) * ${0.01 + p.size * 0.01}),
+                                                0
                                             )
                                         `,
+                                        willChange: "transform",
                                         animation: `floatParticle ${p.duration}s linear infinite`,
                                         animationDelay: `${p.delay}s`
                                     }}

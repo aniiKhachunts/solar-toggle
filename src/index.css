@@ -122,7 +122,7 @@ body {
             transparent 50%
     );
 
-    filter: blur(80px);
+    filter: blur(30px);
     opacity: calc(var(--dusk) * 1.2);
 
     transition: opacity 0.4s ease;

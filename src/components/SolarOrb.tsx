@@ -4,18 +4,33 @@ import { Moon, SunMedium } from "lucide-react";
 type Props = {
     isNight: boolean;
     setIsNight: (v: boolean) => void;
+    setIsDragging: (v: boolean) => void;
 };
 
-export default function SolarOrb({ isNight, setIsNight }: Props) {
+export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) {
     const ref = useRef<HTMLDivElement | null>(null);
     const startRef = useRef<{ x: number; y: number; t: number } | null>(null);
     const draggingRef = useRef(false);
+
+    const rafRef = useRef<number | null>(null);
+    const lastPosRef = useRef<{ x: number; y: number } | null>(null);
+
+    const viewportRef = useRef({
+        w: window.innerWidth,
+        h: window.innerHeight
+    });
 
     const [hintVisible, setHintVisible] = useState(true);
     const [horizonY, setHorizonY] = useState(0);
 
     useEffect(() => {
-        const update = () => setHorizonY(window.innerHeight * 0.62);
+        const update = () => {
+            viewportRef.current = {
+                w: window.innerWidth,
+                h: window.innerHeight
+            };
+            setHorizonY(window.innerHeight * 0.62);
+        };
         update();
         window.addEventListener("resize", update);
         return () => window.removeEventListener("resize", update);
@@ -27,8 +42,8 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
     const setVars = (x: number, y: number) => {
         const root = document.documentElement;
 
-        const clampedX = clamp(x, 40, window.innerWidth - 40);
-        const clampedY = clamp(y, 40, window.innerHeight - 40);
+        const clampedX = clamp(x, 40, viewportRef.current.w - 40);
+        const clampedY = clamp(y, 40, viewportRef.current.h - 40);
 
         const isBelow = clampedY > horizonY;
         root.classList.toggle("mode-night", isBelow);
@@ -37,7 +52,7 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
         root.style.setProperty("--sun-x", `${clampedX}px`);
         root.style.setProperty("--sun-y", `${clampedY}px`);
 
-        const p = Math.min(1, Math.max(0, clampedY / window.innerHeight));
+        const p = Math.min(1, Math.max(0, clampedY / viewportRef.current.h));
         root.style.setProperty("--sun-progress", String(p));
 
         const dusk = Math.min(1, Math.max(0, (p - 0.33) / 0.48));
@@ -64,6 +79,7 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
             };
             draggingRef.current = false;
             setHintVisible(false);
+            setIsDragging(true);
             (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         };
 
@@ -78,9 +94,18 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
                 draggingRef.current = true;
             }
 
-            if (draggingRef.current) {
-                setVars(e.clientX, e.clientY);
-            }
+            if (!draggingRef.current) return;
+
+            lastPosRef.current = { x: e.clientX, y: e.clientY };
+
+            if (rafRef.current) return;
+
+            rafRef.current = requestAnimationFrame(() => {
+                if (lastPosRef.current) {
+                    setVars(lastPosRef.current.x, lastPosRef.current.y);
+                }
+                rafRef.current = null;
+            });
         };
 
         const onPointerUp = (e: PointerEvent) => {
@@ -107,10 +132,11 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
 
             startRef.current = null;
             draggingRef.current = false;
+            setIsDragging(false);
         };
 
         el.addEventListener("pointerdown", onPointerDown);
-        el.addEventListener("pointermove", onPointerMove);
+        el.addEventListener("pointermove", onPointerMove, { passive: true });
         el.addEventListener("pointerup", onPointerUp);
         el.addEventListener("pointercancel", onPointerUp);
         el.addEventListener("pointerleave", onPointerUp);
@@ -121,6 +147,7 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
             el.removeEventListener("pointerup", onPointerUp);
             el.removeEventListener("pointercancel", onPointerUp);
             el.removeEventListener("pointerleave", onPointerUp);
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
         };
     }, [isNight, horizonY]);
 
@@ -135,7 +162,8 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
             style={{
                 left: "var(--sun-x)",
                 top: "var(--sun-y)",
-                transform: "translate(-50%, -50%)",
+                transform: "translate3d(-50%, -50%, 0)",
+                willChange: "transform"
             }}
         >
             <div ref={ref} className="relative cursor-pointer">
@@ -159,7 +187,7 @@ export default function SolarOrb({ isNight, setIsNight }: Props) {
                             : "rgba(251,191,36,0.95)",
                         boxShadow: isNight
                             ? "0 0 30px rgba(96,165,250,0.25)"
-                            : "0 0 80px rgba(251,191,36,0.55)",
+                            : "0 0 60px rgba(251,191,36,0.45)",
                     }}
                 >
                     {isNight ? <Moon size={20} /> : <SunMedium size={20} />}
