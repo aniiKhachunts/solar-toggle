@@ -125,7 +125,7 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
             const isTap = dist <= threshold && dt < 320;
 
             if (isTap) {
-                setIsNight(!isNight);
+                setIsNight(prev => !prev);
             } else {
                 setVars(e.clientX, e.clientY);
             }
@@ -178,10 +178,6 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
                 )}
 
                 <div
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setIsNight(!isNight);
-                    }}
                     className="relative w-16 h-16 rounded-full transition active:scale-90 hover:scale-105"
                 >
                     <div
