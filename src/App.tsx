@@ -4,7 +4,7 @@ import {useSolarTracker} from "./hooks/useSolarTracker.ts";
 
 export default function App() {
     const [isNight, setIsNight] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
+    const [, setIsDragging] = useState(false);
 
     useSolarTracker();
 

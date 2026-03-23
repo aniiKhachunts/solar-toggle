@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import {type Dispatch, type SetStateAction, useEffect, useRef, useState} from "react";
 
 type Props = {
     isNight: boolean;
-    setIsNight: (v: boolean) => void;
+    setIsNight: Dispatch<SetStateAction<boolean>>;
     setIsDragging: (v: boolean) => void;
 };
 
