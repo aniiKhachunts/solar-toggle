@@ -127,8 +127,7 @@ export default function App() {
                         </div>
 
                         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                            {!isDragging && particles.map((p, i) => (
-                                <div
+                            {particles.map((p, i) => (                                <div
                                     key={i}
                                     className="absolute rounded-full bg-white"
                                     style={{

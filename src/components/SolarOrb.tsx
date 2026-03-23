@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Moon, SunMedium } from "lucide-react";
 
 type Props = {
     isNight: boolean;
@@ -46,8 +45,11 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
         const clampedY = clamp(y, 40, viewportRef.current.h - 40);
 
         const isBelow = clampedY > horizonY;
+
         root.classList.toggle("mode-night", isBelow);
         root.classList.toggle("mode-day", !isBelow);
+
+        setIsNight(prev => (prev !== isBelow ? isBelow : prev));
 
         root.style.setProperty("--sun-x", `${clampedX}px`);
         root.style.setProperty("--sun-y", `${clampedY}px`);
@@ -79,7 +81,6 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
             };
             draggingRef.current = false;
             setHintVisible(false);
-            setIsDragging(true);
             (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
         };
 
@@ -92,6 +93,7 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
 
             if (!draggingRef.current && dist > threshold) {
                 draggingRef.current = true;
+                setIsDragging(true);
             }
 
             if (!draggingRef.current) return;
@@ -125,14 +127,16 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
             if (isTap) {
                 setIsNight(!isNight);
             } else {
-                const shouldBeNight = e.clientY > horizonY;
-                setIsNight(shouldBeNight);
                 setVars(e.clientX, e.clientY);
             }
 
             startRef.current = null;
+
+            if (draggingRef.current) {
+                setIsDragging(false);
+            }
+
             draggingRef.current = false;
-            setIsDragging(false);
         };
 
         el.addEventListener("pointerdown", onPointerDown);
@@ -149,7 +153,7 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
             el.removeEventListener("pointerleave", onPointerUp);
             if (rafRef.current) cancelAnimationFrame(rafRef.current);
         };
-    }, [isNight, horizonY]);
+    }, [horizonY]);
 
     useEffect(() => {
         const timer = setTimeout(() => setHintVisible(false), 2500);
@@ -167,8 +171,6 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
             }}
         >
             <div ref={ref} className="relative cursor-pointer">
-                <div className="orb-pulse" />
-
                 {hintVisible && (
                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-[11px] opacity-60 whitespace-nowrap">
                         Drag or tap
@@ -180,17 +182,41 @@ export default function SolarOrb({ isNight, setIsNight, setIsDragging }: Props) 
                         e.stopPropagation();
                         setIsNight(!isNight);
                     }}
-                    className="w-14 h-14 rounded-full grid place-items-center transition active:scale-90 hover:scale-105"
-                    style={{
-                        background: isNight
-                            ? "rgba(96,165,250,0.15)"
-                            : "rgba(251,191,36,0.95)",
-                        boxShadow: isNight
-                            ? "0 0 30px rgba(96,165,250,0.25)"
-                            : "0 0 60px rgba(251,191,36,0.45)",
-                    }}
+                    className="relative w-16 h-16 rounded-full transition active:scale-90 hover:scale-105"
                 >
-                    {isNight ? <Moon size={20} /> : <SunMedium size={20} />}
+                    <div
+                        className="absolute inset-0 rounded-full"
+                        style={{
+                            background: isNight
+                                ? "radial-gradient(circle, rgba(96,165,250,0.9), rgba(96,165,250,0.2) 60%, transparent)"
+                                : "radial-gradient(circle, rgba(251,191,36,1), rgba(251,191,36,0.4) 60%, transparent)",
+                            boxShadow: isNight
+                                ? "0 0 40px rgba(0, 0, 0,0.5)"
+                                : "0 0 80px rgba(0, 0, 0,0.8)"
+                        }}
+                    />
+
+                    <div
+                        className="absolute inset-[-20px] rounded-full pointer-events-none"
+                        style={{
+                            background: isNight
+                                ? "conic-gradient(from 0deg, rgba(96,165,250,0.4), transparent, rgba(96,165,250,0.4))"
+                                : "conic-gradient(from 0deg, rgba(251,191,36,0.6), transparent, rgba(251,191,36,0.6))",
+                            filter: "blur(10px)",
+                            opacity: 0.8,
+                            animation: "spin 10s linear infinite"
+                        }}
+                    />
+
+                    <div
+                        className="absolute inset-[-30px] rounded-full pointer-events-none"
+                        style={{
+                            background: isNight
+                                ? "radial-gradient(circle, rgba(96,165,250,0.2), transparent 70%)"
+                                : "radial-gradient(circle, rgba(251,191,36,0.3), transparent 70%)",
+                            filter: "blur(20px)"
+                        }}
+                    />
                 </div>
             </div>
         </div>
